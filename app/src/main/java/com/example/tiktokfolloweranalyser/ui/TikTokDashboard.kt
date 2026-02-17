@@ -36,18 +36,11 @@ fun TikTokDashboardScreen() {
     val db = remember { TikTokDatabase.getDatabase(context) }
     val repository = remember { TikTokRepository(db.tikTokDao()) }
     
-    var showApifySearch by remember { mutableStateOf(false) }
-
-    if (showApifySearch) {
-        ApifySearchScreen(onBack = { showApifySearch = false })
-        return
-    }
+    var selectedTab by remember { mutableStateOf(0) }
     
     var userData by remember { mutableStateOf<TikTokUserData?>(null) }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-
-
 
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
@@ -67,42 +60,59 @@ fun TikTokDashboardScreen() {
             }
         }
     )
-
+    
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("TikTok Analyser") },
-                actions = {
-                    IconButton(onClick = { showApifySearch = true }) {
-                        Icon(Icons.Default.Search, contentDescription = "Search Online")
-                    }
-                }
+                title = { Text("TikTok Analyser") }
             )
+        },
+        bottomBar = {
+            NavigationBar {
+                NavigationBarItem(
+                    icon = { Icon(Icons.Default.Person, contentDescription = "Import") },
+                    label = { Text("Import") },
+                    selected = selectedTab == 0,
+                    onClick = { selectedTab = 0 }
+                )
+                NavigationBarItem(
+                    icon = { Icon(Icons.Default.Search, contentDescription = "Scrape") },
+                    label = { Text("Scrape") },
+                    selected = selectedTab == 1,
+                    onClick = { selectedTab = 1 }
+                )
+            }
         }
     ) { padding ->
         Box(modifier = Modifier.padding(padding).fillMaxSize()) {
-            if (userData == null) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Button(onClick = { filePickerLauncher.launch(arrayOf("application/zip")) }) {
-                        Text("Load TikTok Data (Zip)")
+            if (selectedTab == 0) {
+                // Import Tab Logic
+                if (userData == null) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Button(onClick = { filePickerLauncher.launch(arrayOf("application/zip")) }) {
+                            Text("Load TikTok Data (Zip)")
+                        }
+                        if (isLoading) {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            CircularProgressIndicator()
+                        }
+                        errorMessage?.let {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(text = "Error: $it", color = MaterialTheme.colorScheme.error)
+                        }
                     }
-                    if (isLoading) {
-                        Spacer(modifier = Modifier.height(16.dp))
-                        CircularProgressIndicator()
-                    }
-                    errorMessage?.let {
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(text = "Error: $it", color = MaterialTheme.colorScheme.error)
+                } else {
+                    DashboardContent(userData!!) {
+                        userData = null // Reset
                     }
                 }
             } else {
-                DashboardContent(userData!!) {
-                    userData = null // Reset
-                }
+                // Scrape Tab Logic
+                ApifySearchScreen()
             }
         }
     }

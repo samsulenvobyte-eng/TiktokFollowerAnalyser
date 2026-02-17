@@ -17,7 +17,7 @@ import com.example.tiktokfolloweranalyser.data.apify.AvatarThumb
 import kotlinx.coroutines.launch
 
 @Composable
-fun ApifySearchScreen(onBack: () -> Unit) {
+fun ApifySearchScreen() {
     // Token is now hardcoded in Repository
     var handle by remember { mutableStateOf("") }
     var maxFollowers by remember { mutableStateOf("20") }
@@ -30,10 +30,6 @@ fun ApifySearchScreen(onBack: () -> Unit) {
     val repository = remember { ApifyRepository() }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Button(onClick = onBack) {
-            Text("Back")
-        }
-        Spacer(modifier = Modifier.height(16.dp))
         
         Text("Scrape User Followers", style = MaterialTheme.typography.headlineSmall)
         
